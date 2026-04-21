@@ -196,7 +196,7 @@ input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:foc
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(79,126,248,0.15);
 }
-select option { background: var(--surface2); }
+select option { background: var(--surface2); color: var(--text); }
 textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 
 /* ===== UPLOAD ZONE ===== */
@@ -510,7 +510,7 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <span class="version-badge">v2.1 — Gemini AI Powered</span>
+      <span class="version-badge">v2.2 — Gemini AI Powered</span>
       <span class="version-badge" style="color:var(--green);border-color:rgba(62,207,142,0.3);">Vintage対応</span>
     </div>
   </div>
@@ -593,6 +593,16 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
             <div class="field-label">🔑 Gemini APIキー <span class="required">必須</span></div>
             <input type="password" id="apiKey" placeholder="AI Studioで取得したAPIキーを入力" onchange="saveApiKey()">
             <div class="tip">※ ブラウザから直接通信可能な Google Gemini API を使用します。<a href="https://aistudio.google.com/app/apikey" target="_blank">無料のAPIキー取得はこちら</a><br>※ キーはブラウザ内にのみ保存されます。</div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">🧠 使用するAIモデル</div>
+            <select id="aiModel">
+              <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (推奨・高速)</option>
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash (予備1)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash (予備2)</option>
+            </select>
+            <div class="tip" style="color: var(--accent3);">※「混雑中 (high demand)」のエラーが出た場合は、別のモデルに変更して再度お試しください。</div>
           </div>
 
           <div class="field">
@@ -882,6 +892,9 @@ function analyzeWithAI() {
     return;
   }
 
+  // 選択されたモデルを取得
+  var selectedModel = document.getElementById('aiModel').value;
+
   var status = document.getElementById('aiStatus');
   var btn = document.getElementById('btnAnalyze');
   var icon = document.getElementById('analyzeIcon');
@@ -945,8 +958,8 @@ function analyzeWithAI() {
     }
   };
 
-  // ⚠️ 修正箇所: エラーの原因だったモデル名を「gemini-2.5-flash」に変更
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey, {
+  // URLに選択したモデル名を組み込む
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/' + selectedModel + ':generateContent?key=' + apiKey, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -991,7 +1004,7 @@ function analyzeWithAI() {
     btn.disabled = false;
     icon.textContent = '🤖';
     status.className = 'ai-status error';
-    status.innerHTML = '❌ 通信エラー：' + err.message;
+    status.innerHTML = '❌ 通信エラー：' + err.message + '<br><small>※混雑エラーの場合は、上の「使用するAIモデル」を変更してお試しください。</small>';
   });
 }
 
