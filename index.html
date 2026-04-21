@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -673,7 +670,7 @@ var uploadedFile = null;
 var uploadedBase64 = null;
 var uploadedMimeType = null;
 var generatedHTML = '';
-var sections = [];
+var sections =[];
 var sectionColors =['#1a4fa0','#2a7a4b','#8b1a8b','#c8392b','#d48010','#1a6a8b'];
 
 // ===== INIT =====
@@ -929,7 +926,6 @@ function analyzeWithAI() {
     '- 解説は「解答ページ」に書かれている内容を忠実に再現してください\n' +
     '- 大学名は括弧なしで入力してください（例：甲南大）';
 
-  // Gemini API request format
   var body = {
     contents:[{
       role: "user",
@@ -949,7 +945,8 @@ function analyzeWithAI() {
     }
   };
 
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=' + apiKey, {
+  // ⚠️ 修正箇所: エラーの原因だったモデル名を「gemini-2.5-flash」に変更
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -972,7 +969,7 @@ function analyzeWithAI() {
 
     var raw = data.candidates[0].content.parts[0].text || '';
 
-    // Clean JSON (in case markdown backticks are still present)
+    // Clean JSON
     var cleaned = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
     var parsed;
     try { parsed = JSON.parse(cleaned); }
