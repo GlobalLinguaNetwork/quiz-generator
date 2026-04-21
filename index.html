@@ -1,0 +1,1587 @@
+
+
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz HTML Generator — Vintage / 英語問題集 Web変換ツール</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #222639;
+  --surface3: #2a2f45;
+  --border: #2e3350;
+  --border2: #3d4460;
+  --text: #e8eaf6;
+  --text2: #9aa0c0;
+  --text3: #5a6080;
+  --accent: #4f7ef8;
+  --accent-hover: #6b95ff;
+  --accent2: #e05560;
+  --accent3: #f0a030;
+  --green: #3ecf8e;
+  --green-dim: #1e4a38;
+  --purple: #9b6dff;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.app-header {
+  background: linear-gradient(135deg, #1a1d27, #222639);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+.app-header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo-icon {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 4px 16px rgba(79,126,248,0.4);
+  flex-shrink: 0;
+}
+.logo-text { font-size: 20px; font-weight: 900; letter-spacing: -0.02em; }
+.logo-sub { font-size: 11px; color: var(--text3); font-weight: 400; margin-top: 2px; }
+.version-badge {
+  padding: 4px 10px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+}
+
+/* ===== LAYOUT ===== */
+.app-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .app-body { grid-template-columns: 1fr; padding: 16px; }
+}
+
+/* ===== PANELS ===== */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel-header-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.panel-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 1px;
+}
+.panel-body { padding: 20px; }
+
+/* ===== STEP INDICATORS ===== */
+.steps {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+}
+.step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  right: -50%;
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+.step.active:not(:last-child)::after { background: var(--accent); }
+.step-circle {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  background: var(--surface);
+  color: var(--text3);
+  font-family: 'DM Mono', monospace;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s;
+}
+.step.active .step-circle { border-color: var(--accent); color: white; background: var(--accent); }
+.step.done .step-circle { border-color: var(--green); color: white; background: var(--green); }
+.step-label { font-size: 10px; color: var(--text3); text-align: center; }
+.step.active .step-label { color: var(--accent); }
+.step.done .step-label { color: var(--green); }
+
+/* ===== FORM FIELDS ===== */
+.field { margin-bottom: 16px; }
+.field-label {
+  font-size: 11px; font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.required { color: var(--accent2); font-size: 10px; }
+input[type="text"], input[type="password"], input[type="number"], select, textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79,126,248,0.15);
+}
+select option { background: var(--surface2); }
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+/* ===== UPLOAD ZONE ===== */
+.upload-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface2);
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(79,126,248,0.05);
+}
+.upload-zone.has-file { border-color: var(--green); border-style: solid; background: rgba(62,207,142,0.05); }
+.upload-icon { font-size: 32px; margin-bottom: 10px; }
+.upload-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.upload-sub { font-size: 11px; color: var(--text3); }
+.upload-zone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  border: none; background: none; padding: 0;
+}
+.file-info {
+  display: none;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--green-dim);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--green);
+  font-weight: 500;
+}
+.file-info.shown { display: block; }
+
+/* ===== SECTION BLOCK ===== */
+.section-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.section-block-header {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface3);
+}
+.section-num-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 4px;
+  background: var(--accent); color: white;
+  font-family: 'DM Mono', monospace;
+}
+.section-title-input {
+  flex: 1; background: transparent; border: none;
+  font-size: 13px; color: var(--text); font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  outline: none; padding: 0;
+}
+.section-title-input::placeholder { color: var(--text3); font-weight: 400; }
+.del-btn {
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  font-size: 16px; padding: 2px 6px; border-radius: 4px;
+  transition: all 0.15s;
+}
+.del-btn:hover { color: var(--accent2); background: rgba(224,85,96,0.1); }
+.section-block-body { padding: 12px 14px; }
+
+/* ===== QUESTION ITEM ===== */
+.q-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.q-item-header {
+  padding: 8px 12px;
+  background: var(--surface3);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.q-item-num {
+  width: 22px; height: 22px;
+  background: var(--accent2);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: white;
+  font-family: 'DM Mono', monospace;
+  flex-shrink: 0;
+}
+.q-item-label { font-size: 12px; font-weight: 700; flex: 1; color: var(--text2); }
+.q-item-body { padding: 12px; display: grid; gap: 8px; }
+.q-row { display: grid; gap: 6px; }
+.q-row-2 { grid-template-columns: 1fr 1fr; }
+.q-row-label { font-size: 10px; color: var(--text3); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 2px; }
+.opts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.opt-input-wrap { display: flex; align-items: center; gap: 6px; }
+.opt-label {
+  width: 20px; height: 20px;
+  background: var(--surface2);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--text2);
+  flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+}
+.correct-select { width: 100%; }
+.add-q-btn {
+  width: 100%;
+  padding: 9px;
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text3);
+  font-size: 12px; font-weight: 600;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.add-q-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,126,248,0.05); }
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px; font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  color: white;
+  box-shadow: 0 4px 16px rgba(79,126,248,0.3);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,126,248,0.45); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-green {
+  background: linear-gradient(135deg, #2db07a, #3ecf8e);
+  color: white;
+  box-shadow: 0 4px 16px rgba(62,207,142,0.3);
+}
+.btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(62,207,142,0.4); }
+.btn-green:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-outline {
+  background: none;
+  border: 1.5px solid var(--border2);
+  color: var(--text2);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 7px 14px; font-size: 12px; }
+.btn-full { width: 100%; }
+
+/* ===== AI STATUS ===== */
+.ai-status {
+  display: none;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  border: 1px solid;
+  animation: fadeSlide 0.3s ease;
+}
+@keyframes fadeSlide { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+.ai-status.running {
+  display: block;
+  background: rgba(79,126,248,0.08);
+  border-color: rgba(79,126,248,0.3);
+  color: var(--accent);
+}
+.ai-status.done {
+  display: block;
+  background: rgba(62,207,142,0.08);
+  border-color: rgba(62,207,142,0.3);
+  color: var(--green);
+}
+.ai-status.error {
+  display: block;
+  background: rgba(224,85,96,0.08);
+  border-color: rgba(224,85,96,0.3);
+  color: var(--accent2);
+}
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(79,126,248,0.3);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== PREVIEW PANEL ===== */
+.preview-panel {
+  position: sticky;
+  top: 20px;
+}
+.preview-iframe-wrap {
+  background: var(--surface2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+}
+.preview-iframe-wrap iframe {
+  width: 100%;
+  height: 600px;
+  border: none;
+  display: block;
+}
+.preview-placeholder {
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text3);
+  font-size: 13px;
+}
+.preview-placeholder-icon { font-size: 40px; opacity: 0.4; }
+.preview-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* ===== PROMPT PREVIEW ===== */
+.prompt-preview {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: var(--text3);
+  max-height: 120px;
+  overflow-y: auto;
+  margin-top: 8px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ===== TABS ===== */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab-btn {
+  padding: 10px 18px; background: none; border: none;
+  font-size: 13px; font-weight: 600;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--text3); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s;
+}
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ===== MISC ===== */
+.tip {
+  font-size: 11px; color: var(--text3);
+  background: var(--surface3);
+  border-left: 3px solid var(--border2);
+  padding: 8px 12px;
+  border-radius: 0 6px 6px 0;
+  line-height: 1.7;
+  margin-top: 8px;
+}
+.tip a { color: var(--accent); text-decoration: none; font-weight: bold; }
+.tip.accent-tip { border-left-color: var(--accent); color: var(--text2); }
+.badge-pill {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  background: rgba(79,126,248,0.15); color: var(--accent);
+  border: 1px solid rgba(79,126,248,0.3);
+  margin-left: 6px;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-header-inner">
+    <div class="app-logo">
+      <div class="logo-icon">📖</div>
+      <div>
+        <div class="logo-text">Quiz HTML Generator</div>
+        <div class="logo-sub">英語問題集 → インタラクティブWebアプリ 変換ツール</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="version-badge">v2.1 — Gemini AI Powered</span>
+      <span class="version-badge" style="color:var(--green);border-color:rgba(62,207,142,0.3);">Vintage対応</span>
+    </div>
+  </div>
+</header>
+
+<!-- BODY -->
+<div class="app-body">
+
+  <!-- LEFT: INPUT PANEL -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- STEP GUIDE -->
+    <div class="panel">
+      <div class="panel-body" style="padding:16px 20px;">
+        <div class="steps">
+          <div class="step active" id="step1">
+            <div class="step-circle">1</div>
+            <div class="step-label">書籍情報</div>
+          </div>
+          <div class="step" id="step2">
+            <div class="step-circle">2</div>
+            <div class="step-label">問題入力</div>
+          </div>
+          <div class="step" id="step3">
+            <div class="step-circle">3</div>
+            <div class="step-label">AI解析</div>
+          </div>
+          <div class="step" id="step4">
+            <div class="step-circle">4</div>
+            <div class="step-label">出力</div>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('tab-book')">📚 書籍情報</button>
+          <button class="tab-btn" onclick="switchTab('tab-questions')">📝 問題データ</button>
+          <button class="tab-btn" onclick="switchTab('tab-ai')">🤖 AI読取</button>
+        </div>
+
+        <!-- TAB: BOOK INFO -->
+        <div class="tab-panel active" id="tab-book">
+          <div class="field">
+            <div class="field-label">問題集名 <span class="required">必須</span></div>
+            <input type="text" id="bookName" placeholder="例：Vintage 3rd Edition" value="Vintage 3rd Edition">
+          </div>
+          <div class="field">
+            <div class="field-label">Field / 分野</div>
+            <input type="text" id="fieldName" placeholder="例：Field 1 文法" value="Field 1 文法">
+          </div>
+          <div class="field">
+            <div class="field-label">章番号 <span class="required">必須</span></div>
+            <input type="text" id="chapterNum" placeholder="例：第01章" value="第01章">
+          </div>
+          <div class="field">
+            <div class="field-label">章タイトル <span class="required">必須</span></div>
+            <input type="text" id="chapterTitle" placeholder="例：時制">
+          </div>
+          <div class="field">
+            <div class="field-label">総問題数</div>
+            <input type="number" id="totalQ" value="5" min="1" max="50">
+          </div>
+        </div>
+
+        <!-- TAB: QUESTIONS -->
+        <div class="tab-panel" id="tab-questions">
+          <div id="sectionsContainer"></div>
+          <button class="btn btn-outline btn-sm" onclick="addSection()" style="width:100%;margin-bottom:10px;">
+            ＋ セクションを追加
+          </button>
+          <div class="tip">
+            💡 問題文の空欄部分は <code>( )</code> と入力してください。キーワード（ハイライトしたい語）は別フィールドに入力します。
+          </div>
+        </div>
+
+        <!-- TAB: AI -->
+        <div class="tab-panel" id="tab-ai">
+          
+          <div class="field">
+            <div class="field-label">🔑 Gemini APIキー <span class="required">必須</span></div>
+            <input type="password" id="apiKey" placeholder="AI Studioで取得したAPIキーを入力" onchange="saveApiKey()">
+            <div class="tip">※ ブラウザから直接通信可能な Google Gemini API を使用します。<a href="https://aistudio.google.com/app/apikey" target="_blank">無料のAPIキー取得はこちら</a><br>※ キーはブラウザ内にのみ保存されます。</div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">📸 問題ページ画像・PDFをアップロード</div>
+            <div class="upload-zone" id="uploadZone">
+              <input type="file" id="fileInput" accept="image/*,.pdf" onchange="handleFileUpload(event)">
+              <div class="upload-icon">📄</div>
+              <div class="upload-title">ファイルをドロップ or クリックして選択</div>
+              <div class="upload-sub">対応形式：JPG / PNG / PDF（直接読取対応）</div>
+              <div class="file-info" id="fileInfo"></div>
+            </div>
+          </div>
+
+          <div class="ai-status" id="aiStatus"></div>
+
+          <button class="btn btn-primary btn-full" id="btnAnalyze" onclick="analyzeWithAI()" disabled>
+            <span id="analyzeIcon">🤖</span> AIで問題を自動読取・解析
+          </button>
+
+          <div class="tip accent-tip" style="margin-top:12px;">
+            🔍 AIが問題文・選択肢・正解・和訳・解説をすべて自動抽出します。<br>
+            抽出後は「問題データ」タブで内容を確認・修正できます。
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GENERATE BUTTON -->
+    <button class="btn btn-green btn-full" id="btnGenerate" onclick="generateHTML()" style="font-size:15px;padding:15px;">
+      ⚡ HTMLを生成する
+    </button>
+
+  </div>
+
+  <!-- RIGHT: PREVIEW PANEL -->
+  <div class="preview-panel">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-icon" style="background:rgba(79,126,248,0.15);">👁</div>
+        <div>
+          <div class="panel-title">プレビュー <span class="badge-pill">リアルタイム</span></div>
+          <div class="panel-sub">生成されたHTMLの出力確認</div>
+        </div>
+      </div>
+      <div class="panel-body" style="padding:16px;">
+        <div class="preview-iframe-wrap">
+          <div class="preview-placeholder" id="previewPlaceholder">
+            <div class="preview-placeholder-icon">📱</div>
+            <div>「HTMLを生成する」ボタンを押すと<br>ここにプレビューが表示されます</div>
+          </div>
+          <iframe id="previewFrame" style="display:none;"></iframe>
+        </div>
+        <div class="preview-actions">
+          <button class="btn btn-primary btn-sm" id="btnDownload" onclick="downloadHTML()" disabled>
+            ⬇ HTMLダウンロード
+          </button>
+          <button class="btn btn-outline btn-sm" id="btnCopyHTML" onclick="copyHTML()" disabled>
+            📋 HTMLコピー
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="openFullPreview()" id="btnFullPreview" disabled>
+            🔗 別タブで開く
+          </button>
+        </div>
+        <div id="generationLog" style="display:none;margin-top:12px;" class="prompt-preview"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== APP STATE =====
+var uploadedFile = null;
+var uploadedBase64 = null;
+var uploadedMimeType = null;
+var generatedHTML = '';
+var sections = [];
+var sectionColors =['#1a4fa0','#2a7a4b','#8b1a8b','#c8392b','#d48010','#1a6a8b'];
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', function() {
+  addSection(); 
+  setupDragDrop();
+  
+  // Load saved API key
+  var savedKey = localStorage.getItem('quizGenApiKey');
+  if (savedKey) document.getElementById('apiKey').value = savedKey;
+});
+
+function saveApiKey() {
+  localStorage.setItem('quizGenApiKey', document.getElementById('apiKey').value.trim());
+}
+
+function setupDragDrop() {
+  var zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  zone.addEventListener('dragleave', function() {
+    zone.classList.remove('dragover');
+  });
+  zone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+  });
+}
+
+// ===== TAB SWITCH =====
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById(tabId).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ===== SECTION MANAGEMENT =====
+var sectionCounter = 0;
+function addSection() {
+  sectionCounter++;
+  var secId = 'sec_' + sectionCounter;
+  var color = sectionColors[(sections.length) % sectionColors.length];
+  var obj = { id: secId, num: String(sectionCounter).padStart(3,'0'), title: '', color: color, questions:[] };
+  sections.push(obj);
+  renderSections();
+}
+
+function deleteSection(secId) {
+  sections = sections.filter(function(s) { return s.id !== secId; });
+  renderSections();
+}
+
+function addQuestion(secId) {
+  var sec = sections.find(function(s) { return s.id === secId; });
+  if (!sec) return;
+  sec.questions.push({
+    id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2,4),
+    sentence: '', keyword: '', options: ['','','',''], correct: 1,
+    translation: '', explanation: '', univ: '', level: 'basic', grammar_note: ''
+  });
+  renderSections();
+}
+
+function deleteQuestion(secId, qId) {
+  var sec = sections.find(function(s) { return s.id === secId; });
+  if (!sec) return;
+  sec.questions = sec.questions.filter(function(q) { return q.id !== qId; });
+  renderSections();
+}
+
+function saveCurrentValues() {
+  sections.forEach(function(sec) {
+    var titleEl = document.getElementById('secTitle_' + sec.id);
+    if (titleEl) sec.title = titleEl.value;
+    sec.questions.forEach(function(q) {
+      var s = document.getElementById('qSentence_' + q.id);
+      var k = document.getElementById('qKeyword_' + q.id);
+      var t = document.getElementById('qTrans_' + q.id);
+      var e = document.getElementById('qExp_' + q.id);
+      var u = document.getElementById('qUniv_' + q.id);
+      var gn = document.getElementById('qGN_' + q.id);
+      var lv = document.getElementById('qLevel_' + q.id);
+      var c = document.getElementById('qCorrect_' + q.id);
+      if (s) q.sentence = s.value;
+      if (k) q.keyword = k.value;
+      if (t) q.translation = t.value;
+      if (e) q.explanation = e.value;
+      if (u) q.univ = u.value;
+      if (gn) q.grammar_note = gn.value;
+      if (lv) q.level = lv.value;
+      if (c) q.correct = parseInt(c.value);
+      for (var i = 0; i < 4; i++) {
+        var o = document.getElementById('qOpt' + i + '_' + q.id);
+        if (o) q.options[i] = o.value;
+      }
+    });
+  });
+}
+
+function renderSections() {
+  var container = document.getElementById('sectionsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  sections.forEach(function(sec, sIdx) {
+    var div = document.createElement('div');
+    div.className = 'section-block';
+    var questionsHTML = '';
+    var globalQNum = 0;
+    for (var si = 0; si < sIdx; si++) { globalQNum += sections[si].questions.length; }
+    
+    sec.questions.forEach(function(q, qIdx) {
+      var qNum = globalQNum + qIdx + 1;
+      var optsHTML = '';
+      var numSymbols = ['①','②','③','④'];
+      for (var i = 0; i < 4; i++) {
+        optsHTML += '<div class="opt-input-wrap"><span class="opt-label">' + numSymbols[i] + '</span>' +
+          '<input type="text" id="qOpt' + i + '_' + q.id + '" placeholder="選択肢' + (i+1) + '" value="' + escHtml(q.options[i] || '') + '">' +
+          '</div>';
+      }
+      var correctOpts = '';
+      for (var j = 1; j <= 4; j++) {
+        correctOpts += '<option value="' + j + '"' + (q.correct === j ? ' selected' : '') + '>' + numSymbols[j-1] + ' が正解</option>';
+      }
+      questionsHTML += '<div class="q-item" id="qitem_' + q.id + '">' +
+        '<div class="q-item-header"><span class="q-item-num">' + qNum + '</span>' +
+        '<span class="q-item-label">問題 ' + qNum + '</span>' +
+        '<select id="qLevel_' + q.id + '" style="width:auto;padding:3px 8px;font-size:11px;">' +
+          '<option value="basic"' + (q.level==='basic'?' selected':'') + '>基本</option>' +
+          '<option value="hard"' + (q.level==='hard'?' selected':'') + '>難</option>' +
+        '</select>' +
+        '<button class="del-btn" onclick="deleteQuestion(\'' + sec.id + '\',\'' + q.id + '\')">✕</button></div>' +
+        '<div class="q-item-body">' +
+          '<div class="q-row"><div class="q-row-label">問題文（空欄は ( ) と記入）</div>' +
+          '<textarea id="qSentence_' + q.id + '" rows="2" placeholder="例: My father usually ( ) home at 7pm.">' + escHtml(q.sentence) + '</textarea></div>' +
+          '<div class="q-row q-row-2">' +
+            '<div><div class="q-row-label">キーワード（ハイライト語）</div>' +
+            '<input type="text" id="qKeyword_' + q.id + '" placeholder="例: usually" value="' + escHtml(q.keyword) + '"></div>' +
+            '<div><div class="q-row-label">出典大学</div>' +
+            '<input type="text" id="qUniv_' + q.id + '" placeholder="例: 甲南大" value="' + escHtml(q.univ) + '"></div>' +
+          '</div>' +
+          '<div class="q-row"><div class="q-row-label">選択肢</div>' +
+          '<div class="opts-grid">' + optsHTML + '</div></div>' +
+          '<div class="q-row"><div class="q-row-label">正解</div>' +
+          '<select id="qCorrect_' + q.id + '" class="correct-select">' + correctOpts + '</select></div>' +
+          '<div class="q-row"><div class="q-row-label">和訳</div>' +
+          '<input type="text" id="qTrans_' + q.id + '" placeholder="日本語訳を入力" value="' + escHtml(q.translation) + '"></div>' +
+          '<div class="q-row"><div class="q-row-label">解説（ポイント・選択肢の説明など）</div>' +
+          '<textarea id="qExp_' + q.id + '" rows="3" placeholder="例: usuallyは習慣的動作を示す副詞で現在時制と共に使う...">' + escHtml(q.explanation) + '</textarea></div>' +
+          '<div class="q-row"><div class="q-row-label">文法ノート（任意）</div>' +
+          '<input type="text" id="qGN_' + q.id + '" placeholder="例: work on A = Aに取り組む" value="' + escHtml(q.grammar_note || '') + '"></div>' +
+        '</div></div>';
+    });
+    div.innerHTML =
+      '<div class="section-block-header">' +
+        '<span class="section-num-badge" style="background:' + sec.color + ';">Section ' + sec.num + '</span>' +
+        '<input class="section-title-input" type="text" id="secTitle_' + sec.id + '" placeholder="セクションタイトルを入力" value="' + escHtml(sec.title) + '">' +
+        '<button class="del-btn" onclick="deleteSection(\'' + sec.id + '\')">✕</button>' +
+      '</div>' +
+      '<div class="section-block-body">' +
+        questionsHTML +
+        '<button class="add-q-btn" onclick="saveCurrentValues();addQuestion(\'' + sec.id + '\')">＋ 問題を追加</button>' +
+      '</div>';
+    container.appendChild(div);
+  });
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ===== FILE UPLOAD =====
+function handleFileUpload(event) {
+  var file = event.target.files[0];
+  if (file) processFile(file);
+}
+
+function processFile(file) {
+  uploadedFile = file;
+  var zone = document.getElementById('uploadZone');
+  var info = document.getElementById('fileInfo');
+  var btn = document.getElementById('btnAnalyze');
+
+  zone.classList.add('has-file');
+  info.textContent = '✓ ' + file.name + ' (' + (file.size/1024).toFixed(1) + ' KB)';
+  info.classList.add('shown');
+  btn.disabled = false;
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var result = e.target.result;
+    uploadedBase64 = result.split(',')[1];
+    uploadedMimeType = file.type || 'image/jpeg';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== AI ANALYSIS (Gemini API) =====
+function analyzeWithAI() {
+  if (!uploadedBase64) return;
+  
+  var apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) {
+    alert("APIキーを入力してください。\nGoogle AI Studioで無料で取得できます。");
+    return;
+  }
+
+  var status = document.getElementById('aiStatus');
+  var btn = document.getElementById('btnAnalyze');
+  var icon = document.getElementById('analyzeIcon');
+
+  status.className = 'ai-status running';
+  status.innerHTML = '<span class="spinner"></span> AIが問題を解析しています... 少々お待ちください';
+  btn.disabled = true;
+  icon.textContent = '⏳';
+
+  var prompt = 'あなたは英語問題集のデジタル化アシスタントです。\n' +
+    '添付の画像またはPDFから英語問題のデータを正確に抽出してください。\n\n' +
+    '以下のJSON形式で出力してください。絶対にJSONのみ出力し、コードブロックは使用しないでください。\n\n' +
+    '{\n' +
+    '  "book": "問題集名",\n' +
+    '  "field": "Field名・分野",\n' +
+    '  "chapter_num": "章番号（例：第01章）",\n' +
+    '  "chapter_title": "章タイトル（例：時制）",\n' +
+    '  "sections":[\n' +
+    '    {\n' +
+    '      "num": "001",\n' +
+    '      "title": "セクションタイトル（解説ページにある日本語タイトル）",\n' +
+    '      "questions":[\n' +
+    '        {\n' +
+    '          "sentence": "問題文（空欄は ( ) と表記）",\n' +
+    '          "keyword": "ハイライトされている・重要な語句（1つ）",\n' +
+    '          "options":["選択肢1","選択肢2","選択肢3","選択肢4"],\n' +
+    '          "correct": 1,\n' +
+    '          "level": "basic または hard",\n' +
+    '          "univ": "出典大学名（例：甲南大）",\n' +
+    '          "translation": "問題文の日本語訳（ページ下部の和訳をそのまま使用）",\n' +
+    '          "explanation": "解説テキスト（解答ページの解説を忠実に再現。ポイント・選択肢の理由を含める）",\n' +
+    '          "grammar_note": "重要表現や文法ノート（あれば）"\n' +
+    '        }\n' +
+    '      ]\n' +
+    '    }\n' +
+    '  ]\n' +
+    '}\n\n' +
+    '注意事項：\n' +
+    '- 問題文・和訳・解説は原文の表記を一字一句変えずに使用してください\n' +
+    '- 正解番号は1〜4の整数で指定してください\n' +
+    '- 選択肢のマーク（①②③④）は除いて文字のみ入力してください\n' +
+    '- 解説は「解答ページ」に書かれている内容を忠実に再現してください\n' +
+    '- 大学名は括弧なしで入力してください（例：甲南大）';
+
+  // Gemini API request format
+  var body = {
+    contents:[{
+      role: "user",
+      parts:[
+        { text: prompt },
+        {
+          inlineData: {
+            mimeType: uploadedMimeType,
+            data: uploadedBase64
+          }
+        }
+      ]
+    }],
+    generationConfig: {
+      temperature: 0.1,
+      responseMimeType: "application/json"
+    }
+  };
+
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=' + apiKey, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  .then(function(res) { 
+    if (!res.ok) {
+      return res.json().then(function(err) { throw new Error(err.error.message || 'API通信エラー'); });
+    }
+    return res.json(); 
+  })
+  .then(function(data) {
+    btn.disabled = false;
+    icon.textContent = '🤖';
+    
+    if (!data.candidates || data.candidates.length === 0) {
+      status.className = 'ai-status error';
+      status.innerHTML = '❌ 解析結果が空でした。再度お試しください。';
+      return;
+    }
+
+    var raw = data.candidates[0].content.parts[0].text || '';
+
+    // Clean JSON (in case markdown backticks are still present)
+    var cleaned = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+    var parsed;
+    try { parsed = JSON.parse(cleaned); }
+    catch(e) {
+      status.className = 'ai-status error';
+      status.innerHTML = '❌ JSONパースエラー。再試行してください。<br><small>' + e.message + '</small>';
+      return;
+    }
+
+    applyAIResult(parsed);
+    status.className = 'ai-status done';
+    status.innerHTML = '✅ 解析完了！「問題データ」タブで内容を確認・修正してください。';
+
+    // Switch to questions tab
+    switchTabDirect('tab-questions');
+    updateStep(2);
+  })
+  .catch(function(err) {
+    btn.disabled = false;
+    icon.textContent = '🤖';
+    status.className = 'ai-status error';
+    status.innerHTML = '❌ 通信エラー：' + err.message;
+  });
+}
+
+function applyAIResult(parsed) {
+  if (parsed.book) document.getElementById('bookName').value = parsed.book;
+  if (parsed.field) document.getElementById('fieldName').value = parsed.field;
+  if (parsed.chapter_num) document.getElementById('chapterNum').value = parsed.chapter_num;
+  if (parsed.chapter_title) document.getElementById('chapterTitle').value = parsed.chapter_title;
+
+  sections =[];
+  sectionCounter = 0;
+
+  var totalQ = 0;
+  if (parsed.sections) {
+    parsed.sections.forEach(function(sec, si) {
+      sectionCounter++;
+      var sId = 'sec_ai_' + sectionCounter;
+      var color = sectionColors[si % sectionColors.length];
+      var qArr =[];
+      if (sec.questions) {
+        sec.questions.forEach(function(q) {
+          totalQ++;
+          qArr.push({
+            id: 'q_ai_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
+            sentence: q.sentence || '',
+            keyword: q.keyword || '',
+            options: q.options || ['','','',''],
+            correct: q.correct || 1,
+            translation: q.translation || '',
+            explanation: q.explanation || '',
+            univ: q.univ || '',
+            level: q.level || 'basic',
+            grammar_note: q.grammar_note || ''
+          });
+        });
+      }
+      sections.push({ id: sId, num: sec.num || String(sectionCounter).padStart(3,'0'), title: sec.title || '', color: color, questions: qArr });
+    });
+  }
+  document.getElementById('totalQ').value = totalQ;
+  renderSections();
+}
+
+function switchTabDirect(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById(tabId).classList.add('active');
+  var btns = document.querySelectorAll('.tab-btn');
+  var map = {'tab-book':0,'tab-questions':1,'tab-ai':2};
+  if (map[tabId] !== undefined) btns[map[tabId]].classList.add('active');
+}
+
+function updateStep(n) {
+  for (var i = 1; i <= 4; i++) {
+    var el = document.getElementById('step' + i);
+    if (!el) continue;
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+// ===== HTML GENERATOR =====
+function generateHTML() {
+  saveCurrentValues();
+
+  var bookName   = document.getElementById('bookName').value || 'Vintage 3rd Edition';
+  var fieldName  = document.getElementById('fieldName').value || 'Field 1 文法';
+  var chapterNum = document.getElementById('chapterNum').value || '第01章';
+  var chapterTitle = document.getElementById('chapterTitle').value || '章タイトル';
+  var totalQ     = parseInt(document.getElementById('totalQ').value) || 5;
+
+  var allQuestions =[];
+  sections.forEach(function(sec) {
+    sec.questions.forEach(function(q) { allQuestions.push({q:q, sec:sec}); });
+  });
+  if (allQuestions.length === 0) {
+    alert('問題を1問以上入力してください。');
+    return;
+  }
+
+  var sentencesArr = allQuestions.map(function(item) {
+    var q = item.q;
+    var opts = q.options ||[];
+    var correctIdx = (q.correct || 1) - 1;
+    var correctText = opts[correctIdx] || '';
+    return q.sentence.replace('( )', correctText);
+  });
+
+  var numSymbols =['①','②','③','④'];
+  var correctTextsArr = allQuestions.map(function(item) {
+    var q = item.q;
+    var idx = (q.correct || 1) - 1;
+    return numSymbols[idx] + ' ' + (q.options[idx] || '');
+  });
+
+  var questionTextsArr = allQuestions.map(function(item) {
+    var q = item.q;
+    var opts = q.options ||[];
+    var optStr = opts.map(function(o,i) { return '選択肢' + (i+1) + ': ' + o + '.'; }).join(' ');
+    return q.sentence.replace('( )', '( blank )') + ' ' + optStr;
+  });
+
+  var secCSSVars = '';
+  sections.forEach(function(sec, i) {
+    secCSSVars += '  --sec-' + i + ': ' + sec.color + ';\n';
+  });
+
+  var sectionHeadersHTML = '';
+  var sectionNoteHTML = '';
+  sections.forEach(function(sec, si) {
+    var sClass = 's' + si;
+    sectionHeadersHTML += '\n  .section-header.' + sClass + ' .section-accent,\n  .section-header.' + sClass + ' .section-num { background: var(--sec-' + si + '); }\n';
+    var noteId = 'note_s' + si;
+    sectionNoteHTML += buildGrammarNote(sec, si, noteId);
+  });
+
+  var qCardsHTML = '';
+  var globalQNum = 0;
+
+  sections.forEach(function(sec, si) {
+    qCardsHTML += buildSectionHeader(sec, si);
+    var noteId = 'note_s' + si;
+    qCardsHTML += buildGrammarNote(sec, si, noteId);
+
+    sec.questions.forEach(function(q) {
+      globalQNum++;
+      qCardsHTML += buildQuestionCard(q, globalQNum, allQuestions, numSymbols, correctTextsArr);
+    });
+  });
+
+  var sentencesJS   = JSON.stringify(sentencesArr);
+  var correctNumsJS = JSON.stringify(allQuestions.map(function(item) { return item.q.correct || 1; }));
+  var correctTxJS   = JSON.stringify(correctTextsArr);
+  var questionTxJS  = JSON.stringify(questionTextsArr);
+  var totalQJS      = allQuestions.length;
+
+  var html = buildFullHTML({
+    bookName: bookName,
+    fieldName: fieldName,
+    chapterNum: chapterNum,
+    chapterTitle: chapterTitle,
+    totalQ: totalQJS,
+    secCSSVars: secCSSVars,
+    sectionHeadersCSS: sectionHeadersHTML,
+    qCardsHTML: qCardsHTML,
+    sentencesJS: sentencesJS,
+    correctNumsJS: correctNumsJS,
+    correctTxJS: correctTxJS,
+    questionTxJS: questionTxJS
+  });
+
+  generatedHTML = html;
+
+  var frame = document.getElementById('previewFrame');
+  var placeholder = document.getElementById('previewPlaceholder');
+  placeholder.style.display = 'none';
+  frame.style.display = 'block';
+  frame.srcdoc = html;
+
+  document.getElementById('btnDownload').disabled = false;
+  document.getElementById('btnCopyHTML').disabled = false;
+  document.getElementById('btnFullPreview').disabled = false;
+
+  updateStep(4);
+
+  var log = document.getElementById('generationLog');
+  log.style.display = 'block';
+  log.textContent = '✅ 生成完了 — ' + allQuestions.length + '問 / ' + sections.length + 'セクション\nファイル名: ' + chapterNum + '_' + chapterTitle + '.html';
+}
+
+function buildGrammarNote(sec, si, noteId) {
+  if (!sec.title) return '';
+  var bgGrad = 'linear-gradient(135deg, ' + sec.color + ', ' + adjustColor(sec.color) + ')';
+  return '<div class="grammar-note">\n' +
+    '<div class="grammar-note-header" style="background:' + bgGrad + ';">\n' +
+    '📖 文法ノート — Section ' + sec.num + ' ポイント\n' +
+    '<button class="grammar-note-toggle" onclick="toggleNote(\'' + noteId + '\')">表示</button>\n' +
+    '</div>\n' +
+    '<div class="grammar-note-body" id="' + noteId + '">\n' +
+    '<p><b>' + esc(sec.title) + '</b></p>\n' +
+    '</div>\n</div>\n';
+}
+
+function adjustColor(hex) {
+  try {
+    var r = parseInt(hex.slice(1,3),16);
+    var g = parseInt(hex.slice(3,5),16);
+    var b = parseInt(hex.slice(5,7),16);
+    r = Math.min(255, r + 40);
+    g = Math.min(255, g + 40);
+    b = Math.min(255, b + 40);
+    return '#' + r.toString(16).padStart(2,'0') + g.toString(16).padStart(2,'0') + b.toString(16).padStart(2,'0');
+  } catch(e) { return hex; }
+}
+
+function buildSectionHeader(sec, si) {
+  return '<div class="section-header s' + si + '">\n' +
+    '<div class="section-accent"></div>\n' +
+    '<div class="section-header-content">\n' +
+    '<span class="section-num">Section ' + sec.num + '</span>\n' +
+    '<span class="section-title">' + esc(sec.title) + '</span>\n' +
+    '</div>\n</div>\n';
+}
+
+function buildQuestionCard(q, globalNum, allQuestions, numSymbols, correctTextsArr) {
+  var numClass = q.level === 'hard' ? 'hard' : 'basic';
+  var opts = q.options || ['','','',''];
+  
+  var optsHTML = '';
+  opts.forEach(function(opt, i) {
+    optsHTML += '<button class="option-btn" onclick="answer(' + globalNum + ',' + (i+1) + ',' + q.correct + ')">' +
+      '<span class="opt-num">' + numSymbols[i] + '</span> ' + esc(opt) + ' <span class="opt-icon"></span></button>\n';
+  });
+
+  var sentenceHTML = buildSentenceHTML(q.sentence, q.keyword, globalNum);
+  var expHTML = buildExplanationHTML(q, globalNum);
+
+  return '<div class="q-card" id="q' + globalNum + '">\n' +
+    '<div class="q-header">\n' +
+    '<div class="q-num ' + numClass + '">' + globalNum + '</div>\n' +
+    '<span class="q-badge kihon">' + (q.level === 'hard' ? '難' : '基本') + '</span>\n' +
+    (q.keyword ? '<span style="font-size:12px;color:var(--text3);">注目：<span class="keyword" style="font-size:12px;">' + esc(q.keyword) + '</span></span>\n' : '') +
+    (q.univ ? '<span class="q-univ">（' + esc(q.univ) + '）</span>\n' : '') +
+    '<button class="q-tts" onclick="speakQuestion(' + globalNum + ')" title="この問題を読み上げ">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" width="14" height="14"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>' +
+    '</button>\n</div>\n' +
+    '<div class="q-body">\n' +
+    '<div class="q-sentence">' + sentenceHTML + '</div>\n' +
+    '<div class="options-grid" id="opts' + globalNum + '">' + optsHTML + '</div>\n' +
+    '<div class="q-feedback" id="fb' + globalNum + '"></div>\n' +
+    '<div class="q-translation" id="trans' + globalNum + '">' +
+    '<div class="trans-label">▼ 和訳</div>' + esc(q.translation) + '</div>\n' +
+    expHTML +
+    '<div class="q-actions">\n' +
+    '<button class="act-btn" onclick="toggleTrans(' + globalNum + ')">🇯🇵 和訳</button>\n' +
+    '<button class="act-btn" onclick="toggleExp(' + globalNum + ')">📝 解説</button>\n' +
+    '<button class="act-btn" onclick="speakFull(' + globalNum + ')">🔊 全文読み上げ</button>\n' +
+    '</div>\n</div>\n</div>\n';
+}
+
+function buildSentenceHTML(sentence, keyword, qNum) {
+  var html = esc(sentence);
+  html = html.replace(/\( \)/g, '(<span class="q-blank" id="blank' + qNum + '">&nbsp;&nbsp;&nbsp;&nbsp;</span>)');
+  if (keyword) {
+    var kEsc = esc(keyword);
+    html = html.replace(kEsc, '<span class="keyword">' + kEsc + '</span>');
+  }
+  return html;
+}
+
+function buildExplanationHTML(q, n) {
+  var inner = '';
+  if (q.explanation) {
+    var expText = esc(q.explanation).replace(/\n/g,'<br>');
+    inner += '<p>' + expText + '</p>\n';
+  }
+  if (q.grammar_note) {
+    inner += '<div class="explain-box">📌 重要表現：' + esc(q.grammar_note) + '</div>\n';
+  }
+  if (!inner) inner = '<p>解説を確認してください。</p>';
+  return '<div class="q-explain" id="exp' + n + '">\n' +
+    '<div class="explain-title">解説</div>\n' +
+    inner + '</div>\n';
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ===== FULL HTML TEMPLATE =====
+function buildFullHTML(d) {
+  return '<!DOCTYPE html>\n<html lang="ja">\n<head>\n' +
+'<meta charset="UTF-8">\n' +
+'<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+'<title>' + esc(d.chapterNum) + ' ' + esc(d.chapterTitle) + ' — ' + esc(d.bookName) + '</title>\n' +
+'<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@400;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">\n' +
+'<style>\n' +
+':root {\n' +
+'  --bg: #f5f3ee;\n' +
+'  --surface: #ffffff;\n' +
+'  --surface2: #f0ede6;\n' +
+'  --border: #d9d3c7;\n' +
+'  --text: #1a1714;\n' +
+'  --text2: #5a5550;\n' +
+'  --text3: #8a8480;\n' +
+'  --accent: #1a4fa0;\n' +
+'  --accent2: #c8392b;\n' +
+'  --accent3: #e8a020;\n' +
+'  --green: #2a7a4b;\n' +
+'  --green-bg: #eaf5ef;\n' +
+'  --red-bg: #fdecea;\n' +
+'  --shadow: 0 2px 12px rgba(0,0,0,0.08);\n' +
+'  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);\n' +
+'  --radius: 12px;\n' +
+d.secCSSVars +
+'}\n' +
+'* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
+'body { font-family: \'Noto Sans JP\', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }\n' +
+'.site-header { background: var(--accent); color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(26,79,160,0.3); }\n' +
+'.header-inner { max-width: 860px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }\n' +
+'.header-left { display: flex; align-items: center; gap: 12px; }\n' +
+'.chapter-badge { background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.4); border-radius: 8px; padding: 4px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; white-space: nowrap; font-family: \'DM Mono\', monospace; }\n' +
+'.header-title { font-size: clamp(16px,4vw,22px); font-weight: 900; letter-spacing: -0.02em; }\n' +
+'.header-subtitle { font-size: 11px; opacity: 0.75; }\n' +
+'.progress-ring-wrap { position: relative; width: 36px; height: 36px; }\n' +
+'.progress-ring { transform: rotate(-90deg); }\n' +
+'.progress-ring-bg { fill: none; stroke: rgba(255,255,255,0.2); stroke-width: 3; }\n' +
+'.progress-ring-fill { fill: none; stroke: white; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 88; stroke-dashoffset: 88; transition: stroke-dashoffset 0.5s ease; }\n' +
+'.progress-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: \'DM Mono\', monospace; }\n' +
+'.tts-toolbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 20px; }\n' +
+'.tts-toolbar-inner { max-width: 860px; margin: 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }\n' +
+'.tts-label { font-size: 12px; color: var(--text3); font-weight: 500; flex-shrink: 0; }\n' +
+'.tts-btn { display: flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 12px; font-family: \'Noto Sans JP\', sans-serif; font-weight: 500; color: var(--text); transition: all 0.15s; }\n' +
+'.tts-btn:hover, .tts-btn.active { background: var(--accent); color: white; border-color: var(--accent); }\n' +
+'.tts-btn svg { width: 14px; height: 14px; }\n' +
+'.speed-select { padding: 6px 10px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface2); font-size: 12px; font-family: \'Noto Sans JP\', sans-serif; color: var(--text); cursor: pointer; }\n' +
+'.main { max-width: 860px; margin: 0 auto; padding: 24px 16px; }\n' +
+'.section-header { display: flex; align-items: stretch; margin-bottom: 20px; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }\n' +
+'.section-accent { width: 6px; flex-shrink: 0; }\n' +
+'.section-header-content { background: var(--surface); padding: 16px 20px; flex: 1; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }\n' +
+'.section-num { font-size: 11px; font-weight: 700; font-family: \'DM Mono\', monospace; letter-spacing: 0.08em; padding: 3px 10px; border-radius: 4px; color: white; flex-shrink: 0; }\n' +
+'.section-title { font-size: clamp(14px,3.5vw,17px); font-weight: 700; color: var(--text); letter-spacing: -0.01em; }\n' +
+d.sectionHeadersCSS +
+'.q-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; transition: box-shadow 0.2s; }\n' +
+'.q-card:hover { box-shadow: var(--shadow-lg); }\n' +
+'.q-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }\n' +
+'.q-num { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; color: white; flex-shrink: 0; font-family: \'DM Mono\', monospace; }\n' +
+'.q-num.basic { background: var(--accent2); } .q-num.hard { background: #333; }\n' +
+'.q-badge { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; letter-spacing: 0.05em; border: 1.5px solid; }\n' +
+'.q-badge.kihon { color: var(--accent2); border-color: var(--accent2); background: #fff3f2; }\n' +
+'.q-univ { margin-left: auto; font-size: 11px; color: var(--text3); }\n' +
+'.q-tts { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }\n' +
+'.q-tts:hover, .q-tts.speaking { background: var(--accent); border-color: var(--accent); }\n' +
+'.q-tts.speaking { animation: pulse 1s infinite; }\n' +
+'@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }\n' +
+'.q-tts:hover svg, .q-tts.speaking svg { stroke: white; }\n' +
+'.q-body { padding: 20px; }\n' +
+'.q-sentence { font-size: clamp(15px,3.8vw,18px); line-height: 1.7; margin-bottom: 18px; font-family: \'Noto Serif JP\', serif; color: var(--text); }\n' +
+'.q-blank { display: inline-block; min-width: 60px; border-bottom: 2.5px solid var(--accent); text-align: center; padding: 0 6px; font-family: \'DM Mono\', monospace; font-size: 14px; color: var(--accent); vertical-align: bottom; transition: all 0.3s; }\n' +
+'.q-blank.correct-shown { color: var(--green); font-weight: 700; font-size: 15px; border-color: transparent; }\n' +
+'.q-blank.wrong-shown { color: var(--accent2); text-decoration: line-through; border-color: transparent; }\n' +
+'.keyword { background: linear-gradient(transparent 60%,rgba(232,160,32,0.35) 60%); font-weight: 700; }\n' +
+'.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }\n' +
+'@media (max-width:480px) { .options-grid { grid-template-columns: 1fr; } }\n' +
+'.option-btn { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; border: 2px solid var(--border); background: var(--surface2); cursor: pointer; text-align: left; font-family: \'Noto Sans JP\', sans-serif; font-size: 14px; color: var(--text); transition: all 0.15s; width: 100%; }\n' +
+'.option-btn:hover:not(:disabled) { border-color: var(--accent); background: #eef3fc; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(26,79,160,0.15); }\n' +
+'.option-btn:disabled { cursor: default; transform: none; }\n' +
+'.option-btn.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); font-weight: 700; }\n' +
+'.option-btn.wrong { border-color: var(--accent2); background: var(--red-bg); color: var(--accent2); }\n' +
+'.option-btn.revealed-correct { border-color: var(--green); background: var(--green-bg); color: var(--green); font-weight: 700; }\n' +
+'.opt-num { width: 24px; height: 24px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; font-family: \'DM Mono\', monospace; transition: background 0.15s; }\n' +
+'.option-btn.correct .opt-num { background: var(--green); color: white; }\n' +
+'.option-btn.wrong .opt-num { background: var(--accent2); color: white; }\n' +
+'.option-btn.revealed-correct .opt-num { background: var(--green); color: white; }\n' +
+'.opt-icon { margin-left: auto; font-size: 16px; flex-shrink: 0; }\n' +
+'.q-feedback { display: none; margin-top: 4px; padding: 14px 16px; border-radius: 10px; font-size: 13px; line-height: 1.7; animation: fadeIn 0.3s ease; }\n' +
+'@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }\n' +
+'.q-feedback.correct-fb { display: block; background: var(--green-bg); border-left: 4px solid var(--green); color: #1a5c38; }\n' +
+'.q-feedback.wrong-fb { display: block; background: var(--red-bg); border-left: 4px solid var(--accent2); color: #8c2020; }\n' +
+'.q-translation { display: none; margin-top: 10px; padding: 12px 16px; border-radius: 8px; background: #f7f4ef; border-left: 3px solid var(--accent3); font-size: 13px; color: var(--text2); line-height: 1.7; animation: fadeIn 0.3s ease; }\n' +
+'.q-translation.shown { display: block; }\n' +
+'.trans-label { font-size: 10px; font-weight: 700; color: var(--accent3); letter-spacing: 0.08em; margin-bottom: 4px; }\n' +
+'.q-explain { display: none; margin-top: 10px; padding: 14px 18px; border-radius: 10px; background: #fffdf7; border: 1.5px solid #e8d090; font-size: 13px; color: var(--text2); line-height: 1.9; animation: fadeIn 0.3s ease; }\n' +
+'.q-explain.shown { display: block; }\n' +
+'.explain-title { font-size: 12px; font-weight: 700; color: var(--accent3); letter-spacing: 0.06em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }\n' +
+'.explain-title::before { content: \'\'; display: block; width: 3px; height: 14px; background: var(--accent3); border-radius: 2px; }\n' +
+'.explain-box { margin-top: 10px; padding: 10px 14px; background: #f7f0d8; border-radius: 8px; font-size: 12px; color: #6a5010; }\n' +
+'.q-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }\n' +
+'.act-btn { display: flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--surface2); font-size: 12px; font-weight: 500; font-family: \'Noto Sans JP\', sans-serif; color: var(--text2); cursor: pointer; transition: all 0.15s; }\n' +
+'.act-btn:hover, .act-btn.toggle-active { background: var(--accent); color: white; border-color: var(--accent); }\n' +
+'.score-panel { display: none; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 32px 24px; text-align: center; margin-top: 24px; animation: fadeIn 0.5s ease; }\n' +
+'.score-panel.shown { display: block; }\n' +
+'.score-emoji { font-size: 48px; margin-bottom: 12px; }\n' +
+'.score-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }\n' +
+'.score-num { font-size: 48px; font-weight: 900; color: var(--accent); font-family: \'DM Mono\', monospace; }\n' +
+'.score-denom { font-size: 20px; color: var(--text3); }\n' +
+'.score-msg { margin-top: 12px; font-size: 14px; color: var(--text2); }\n' +
+'.retry-btn { margin-top: 20px; padding: 12px 32px; border-radius: 30px; background: var(--accent); color: white; border: none; font-size: 15px; font-weight: 700; font-family: \'Noto Sans JP\', sans-serif; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 16px rgba(26,79,160,0.3); }\n' +
+'.retry-btn:hover { transform: translateY(-2px); }\n' +
+'.grammar-note { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }\n' +
+'.grammar-note-header { padding: 12px 20px; color: white; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; display: flex; align-items: center; gap: 8px; }\n' +
+'.grammar-note-body { padding: 16px 20px; font-size: 12px; color: var(--text2); line-height: 1.9; display: none; }\n' +
+'.grammar-note-body.shown { display: block; }\n' +
+'.grammar-note-toggle { margin-left: auto; padding: 3px 10px; border-radius: 12px; border: 1.5px solid rgba(255,255,255,0.4); background: transparent; color: white; font-size: 11px; font-family: \'Noto Sans JP\', sans-serif; cursor: pointer; }\n' +
+'.speaking-indicator { position: fixed; bottom: 20px; right: 20px; background: var(--accent); color: white; padding: 10px 18px; border-radius: 24px; font-size: 13px; font-weight: 600; display: none; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(26,79,160,0.4); z-index: 200; }\n' +
+'.speaking-indicator.active { display: flex; }\n' +
+'.wave { display: flex; gap: 2px; }\n' +
+'.wave span { display: block; width: 3px; height: 14px; background: rgba(255,255,255,0.8); border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }\n' +
+'.wave span:nth-child(2) { animation-delay: 0.1s; }\n' +
+'.wave span:nth-child(3) { animation-delay: 0.2s; }\n' +
+'@keyframes wave { 0%,100%{height:4px} 50%{height:14px} }\n' +
+'.footer-note { text-align: center; font-size: 11px; color: var(--text3); padding: 20px; line-height: 1.8; }\n' +
+'@media (max-width:600px) { .header-subtitle { display: none; } .q-univ { display: none; } .q-body { padding: 16px; } .q-header { padding: 12px 16px; } }\n' +
+'</style>\n</head>\n<body>\n\n' +
+
+'<header class="site-header">\n' +
+'<div class="header-inner">\n' +
+'<div class="header-left">\n' +
+'<div>\n' +
+'<div class="chapter-badge">' + esc(d.fieldName) + ' / ' + esc(d.chapterNum) + '</div>\n' +
+'</div>\n' +
+'<div>\n' +
+'<div class="header-title">' + esc(d.chapterTitle) + '</div>\n' +
+'<div class="header-subtitle">' + esc(d.bookName) + '</div>\n' +
+'</div>\n</div>\n' +
+'<div class="progress-ring-wrap">\n' +
+'<svg class="progress-ring" width="36" height="36" viewBox="0 0 36 36">\n' +
+'<circle class="progress-ring-bg" cx="18" cy="18" r="14"/>\n' +
+'<circle class="progress-ring-fill" id="progressRing" cx="18" cy="18" r="14"/>\n' +
+'</svg>\n' +
+'<div class="progress-num" id="progressNum">0/' + d.totalQ + '</div>\n' +
+'</div>\n' +
+'</div>\n</header>\n\n' +
+
+'<div class="tts-toolbar">\n' +
+'<div class="tts-toolbar-inner">\n' +
+'<span class="tts-label">🔊 音声</span>\n' +
+'<button class="tts-btn" id="btnReadAll" onclick="readAllQuestions()">' +
+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5,3 19,12 5,21"/></svg>全問読み上げ</button>\n' +
+'<button class="tts-btn" onclick="stopSpeech()" style="border-color:var(--accent2);color:var(--accent2);">' +
+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"/></svg>停止</button>\n' +
+'<select class="speed-select" id="speedSelect" onchange="updateSpeed()">\n' +
+'<option value="0.7">速度: 遅め</option>\n' +
+'<option value="1.0" selected>速度: 普通</option>\n' +
+'<option value="1.3">速度: 速め</option>\n' +
+'</select>\n' +
+'<button class="tts-btn" id="btnAutoRead" onclick="toggleAutoRead()">' +
+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20"/><polyline points="12,6 12,12 16,14"/></svg>回答後自動読み上げ</button>\n' +
+'</div>\n</div>\n\n' +
+
+'<main class="main">\n' +
+d.qCardsHTML +
+'\n<div class="score-panel" id="scorePanel">\n' +
+'<div class="score-emoji" id="scoreEmoji">🎉</div>\n' +
+'<div class="score-title">結果発表</div>\n' +
+'<div><span class="score-num" id="scoreNum">0</span><span class="score-denom"> / ' + d.totalQ + '</span></div>\n' +
+'<div class="score-msg" id="scoreMsg"></div>\n' +
+'<button class="retry-btn" onclick="retryAll()">🔄 もう一度挑戦</button>\n' +
+'</div>\n\n' +
+'<div class="footer-note">' + esc(d.bookName) + ' ' + esc(d.chapterNum) + ' ' + esc(d.chapterTitle) + '<br>本アプリは学習用ツールです</div>\n' +
+'</main>\n\n' +
+'<div class="speaking-indicator" id="speakingIndicator">\n' +
+'<div class="wave"><span></span><span></span><span></span></div>読み上げ中...\n</div>\n\n' +
+
+'<script>\n' +
+'var TOTAL_Q = ' + d.totalQ + ';\n' +
+'var answered =[];\n' +
+'var correct =[];\n' +
+'for (var _i = 0; _i < TOTAL_Q; _i++) { answered.push(false); correct.push(false); }\n' +
+'var autoRead = false;\n' +
+'var speechRate = 1.0;\n' +
+'var answeredCount = 0;\n' +
+'var sentences = ' + d.sentencesJS + ';\n' +
+'var correctAnswers = ' + d.correctNumsJS + ';\n' +
+'var correctTexts = ' + d.correctTxJS + ';\n' +
+'var questionTexts = ' + d.questionTxJS + ';\n' +
+buildQuizJS(d.totalQ) +
+'<\/script>\n</body>\n</html>';
+}
+
+function buildQuizJS(totalQ) {
+  return '\n' +
+'function answer(qNum, chosen, correct_opt) {\n' +
+'  if (answered[qNum-1]) return;\n' +
+'  answered[qNum-1] = true;\n' +
+'  answeredCount++;\n' +
+'  var isCorrect = (chosen === correct_opt);\n' +
+'  correct[qNum-1] = isCorrect;\n' +
+'  var opts = document.getElementById("opts"+qNum).querySelectorAll(".option-btn");\n' +
+'  for (var i = 0; i < opts.length; i++) {\n' +
+'    opts[i].disabled = true;\n' +
+'    var on = i+1;\n' +
+'    if (on === correct_opt && !isCorrect) { opts[i].classList.add("revealed-correct"); opts[i].querySelector(".opt-icon").textContent = "✓"; }\n' +
+'    if (on === chosen) {\n' +
+'      if (isCorrect) { opts[i].classList.add("correct"); opts[i].querySelector(".opt-icon").textContent = "○"; }\n' +
+'      else { opts[i].classList.add("wrong"); opts[i].querySelector(".opt-icon").textContent = "✗"; }\n' +
+'    }\n' +
+'  }\n' +
+'  var blank = document.getElementById("blank"+qNum);\n' +
+'  if (blank) { blank.textContent = correctTexts[qNum-1].replace(/[①②③④] /,""); blank.classList.add("answered"); blank.classList.add(isCorrect?"correct-shown":"wrong-shown"); }\n' +
+'  var fb = document.getElementById("fb"+qNum);\n' +
+'  if (isCorrect) { fb.className = "q-feedback correct-fb"; fb.innerHTML = "<span>✅</span><b>正解！</b> 正解は "+correctTexts[qNum-1]+" です。"; }\n' +
+'  else { fb.className = "q-feedback wrong-fb"; fb.innerHTML = "<span>❌</span>不正解。正解は <b>"+correctTexts[qNum-1]+"</b> でした。"; showExp(qNum); }\n' +
+'  updateProgress();\n' +
+'  if (autoRead) { setTimeout(function(){ speak(sentences[qNum-1]); },300); }\n' +
+'  if (answeredCount === TOTAL_Q) { setTimeout(showScore, 600); }\n' +
+'}\n' +
+'function showScore() {\n' +
+'  var total=0; for(var i=0;i<correct.length;i++){if(correct[i])total++;}\n' +
+'  document.getElementById("scoreNum").textContent=total;\n' +
+'  var panel=document.getElementById("scorePanel"); panel.classList.add("shown");\n' +
+'  var emoji="😔",msg="もう一度解説を読んで、復習しましょう！";\n' +
+'  if(total===TOTAL_Q){emoji="🏆";msg="全問正解！完璧です！";}\n' +
+'  else if(total>=Math.ceil(TOTAL_Q*0.8)){emoji="🎉";msg="よくできました！あと少しで完璧！";}\n' +
+'  else if(total>=Math.ceil(TOTAL_Q*0.6)){emoji="😊";msg="半分以上正解！解説を復習してみましょう。";}\n' +
+'  document.getElementById("scoreEmoji").textContent=emoji;\n' +
+'  document.getElementById("scoreMsg").textContent=msg;\n' +
+'  panel.scrollIntoView({behavior:"smooth",block:"center"});\n' +
+'}\n' +
+'function retryAll() {\n' +
+'  for(var i=0;i<TOTAL_Q;i++){answered[i]=false;correct[i]=false;}\n' +
+'  answeredCount=0;\n' +
+'  for(var q=1;q<=TOTAL_Q;q++){\n' +
+'    var opts=document.getElementById("opts"+q);\n' +
+'    if(!opts)continue;\n' +
+'    var bs=opts.querySelectorAll(".option-btn");\n' +
+'    for(var b=0;b<bs.length;b++){bs[b].disabled=false;bs[b].className="option-btn";bs[b].querySelector(".opt-icon").textContent="";}\n' +
+'    var fb=document.getElementById("fb"+q); if(fb)fb.className="q-feedback";\n' +
+'    var bl=document.getElementById("blank"+q); if(bl){bl.innerHTML="&nbsp;&nbsp;&nbsp;&nbsp;";bl.className="q-blank";}\n' +
+'    var tr=document.getElementById("trans"+q); if(tr)tr.className="q-translation";\n' +
+'    var ex=document.getElementById("exp"+q); if(ex)ex.className="q-explain";\n' +
+'    var card=document.getElementById("q"+q);\n' +
+'    if(card){var abs=card.querySelectorAll(".act-btn");for(var ab=0;ab<abs.length;ab++)abs[ab].classList.remove("toggle-active");}\n' +
+'  }\n' +
+'  document.getElementById("scorePanel").classList.remove("shown");\n' +
+'  updateProgress(); window.scrollTo({top:0,behavior:"smooth"});\n' +
+'}\n' +
+'function updateProgress() {\n' +
+'  var ac=0; for(var i=0;i<answered.length;i++){if(answered[i])ac++;}\n' +
+'  document.getElementById("progressNum").textContent=ac+"/"+TOTAL_Q;\n' +
+'  var offset=88-(88*ac/TOTAL_Q);\n' +
+'  document.getElementById("progressRing").style.strokeDashoffset=offset;\n' +
+'}\n' +
+'function toggleTrans(n){var el=document.getElementById("trans"+n),btn=event.target;if(el.classList.contains("shown")){el.classList.remove("shown");btn.classList.remove("toggle-active");}else{el.classList.add("shown");btn.classList.add("toggle-active");}}\n' +
+'function showExp(n){document.getElementById("exp"+n).classList.add("shown");}\n' +
+'function toggleExp(n){var el=document.getElementById("exp"+n),btn=event.target;if(el.classList.contains("shown")){el.classList.remove("shown");btn.classList.remove("toggle-active");}else{el.classList.add("shown");btn.classList.add("toggle-active");}}\n' +
+'function toggleNote(id){var el=document.getElementById(id),btn=event.target;if(el.classList.contains("shown")){el.classList.remove("shown");btn.textContent="表示";}else{el.classList.add("shown");btn.textContent="非表示";}}\n' +
+'function speak(text){\n' +
+'  if(!window.speechSynthesis)return;\n' +
+'  window.speechSynthesis.cancel();\n' +
+'  var u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=speechRate;\n' +
+'  u.onstart=function(){document.getElementById("speakingIndicator").classList.add("active");};\n' +
+'  u.onend=function(){document.getElementById("speakingIndicator").classList.remove("active");document.querySelectorAll(".q-tts").forEach(function(b){b.classList.remove("speaking");});};\n' +
+'  window.speechSynthesis.speak(u);\n' +
+'}\n' +
+'function speakQuestion(n){document.querySelectorAll(".q-tts").forEach(function(b){b.classList.remove("speaking");});var c=document.getElementById("q"+n);if(c)c.querySelector(".q-tts").classList.add("speaking");speak(questionTexts[n-1]);}\n' +
+'function speakFull(n){speak(sentences[n-1]);}\n' +
+'function stopSpeech(){if(window.speechSynthesis)window.speechSynthesis.cancel();document.getElementById("speakingIndicator").classList.remove("active");document.querySelectorAll(".q-tts").forEach(function(b){b.classList.remove("speaking");});document.getElementById("btnReadAll").classList.remove("active");}\n' +
+'function updateSpeed(){speechRate=parseFloat(document.getElementById("speedSelect").value);}\n' +
+'var _readIdx=0;\n' +
+'function readAllQuestions(){stopSpeech();_readIdx=0;document.getElementById("btnReadAll").classList.add("active");_readNext();}\n' +
+'function _readNext(){if(_readIdx>=sentences.length){document.getElementById("btnReadAll").classList.remove("active");return;}var t=sentences[_readIdx++];if(!window.speechSynthesis)return;window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=speechRate;u.onstart=function(){document.getElementById("speakingIndicator").classList.add("active");};u.onend=function(){document.getElementById("speakingIndicator").classList.remove("active");setTimeout(_readNext,600);};window.speechSynthesis.speak(u);}\n' +
+'function toggleAutoRead(){autoRead=!autoRead;var b=document.getElementById("btnAutoRead");if(autoRead)b.classList.add("active");else b.classList.remove("active");}\n';
+}
+
+// ===== DOWNLOAD / COPY =====
+function downloadHTML() {
+  if (!generatedHTML) return;
+  var chapterTitle = document.getElementById('chapterTitle').value || 'quiz';
+  var chapterNum = document.getElementById('chapterNum').value || '00';
+  var filename = chapterNum + '_' + chapterTitle + '.html';
+  filename = filename.replace(/[\/\\:*?"<>|]/g,'_');
+  var blob = new Blob([generatedHTML], {type: 'text/html;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function copyHTML() {
+  if (!generatedHTML) return;
+  navigator.clipboard.writeText(generatedHTML).then(function() {
+    var btn = document.getElementById('btnCopyHTML');
+    var orig = btn.textContent;
+    btn.textContent = '✅ コピーしました';
+    setTimeout(function() { btn.textContent = orig; }, 2000);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = generatedHTML;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+function openFullPreview() {
+  if (!generatedHTML) return;
+  var w = window.open('', '_blank');
+  w.document.write(generatedHTML);
+  w.document.close();
+}
+</script>
+</body>
+</html>
